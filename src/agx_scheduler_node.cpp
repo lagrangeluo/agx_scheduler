@@ -12,6 +12,7 @@ agx_scheduler_node::agx_scheduler_node()
     ros::NodeHandle private_nh("~");
 
     private_nh.param<std::string>("nav_file_path",_graph_file_path,"/"); 
+    schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("/schedule_path", 10, true);
 
     //init graph file path
     auto traits = rmf_traffic::agv::VehicleTraits{
@@ -159,13 +160,27 @@ bool agx_scheduler_node::greedy_search_start()
   //start to reconstruct the path
   ROS_INFO("\033[32m START PUB the path, goal index: \033[0m");
   std::size_t path_index = _greedy_impl_ptr->_parent_list[_goal.index];
+
+  agx_scheduler::SchedulePath path_msg;
+  agx_scheduler::Waypoint wp_msg;
+  wp_msg.index = _goal.index;
+  path_msg.path.push_back(wp_msg);
+
   ROS_INFO("----goal %ld",_goal.index);
   while(path_index != _start.index)
   {
+    wp_msg.index = path_index;
+    path_msg.path.push_back(wp_msg);
+
     ROS_INFO(("-------- %ld"),path_index);
     path_index = _greedy_impl_ptr->_parent_list[path_index];
   }
+  wp_msg.index = _start.index;
+  path_msg.path.push_back(wp_msg);
 
+  //pub the path msg
+  schedule_path_pub.publish(path_msg);
+  //caculate running time
   ros::Duration running_tim = ros::Time::now() - begin;
 
   ROS_INFO("---start %ld",_start.index);

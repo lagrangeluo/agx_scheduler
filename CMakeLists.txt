@@ -10,6 +10,8 @@ project(agx_scheduler)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  message_generation
+  message_runtime
 )
 
 find_package(rmf_traffic REQUIRED)
@@ -17,11 +19,20 @@ find_package(rmf_utils REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+
+add_message_files(
+  FILES
+  Waypoint.msg
+  SchedulePath.msg
+)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES test_1
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+  CATKIN_DEPENDS
+  message_runtime
+  message_generation
 )
 
 include_directories(
@@ -63,5 +74,3 @@ include_directories(
   install(DIRECTORY launch config
    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
    )
-
-

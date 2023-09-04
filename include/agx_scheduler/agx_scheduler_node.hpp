@@ -19,14 +19,13 @@
 //headfile include
 //#include <Eigen/Geometry>
 #include <eigen3/Eigen/Dense>
-
-//#include <Eigen/StdVector>
 #include <rmf_traffic/geometry/Circle.hpp>
 #include "parse_graph.hpp"
 
 //user defined header files
+#include <agx_scheduler/SchedulePath.h>
+#include <agx_scheduler/Waypoint.h>
 
-//define
 
 #define NULL_INDEX 65535
 
@@ -51,6 +50,9 @@ class agx_scheduler_node
 
   private:
 
+    //ros
+    ros::Publisher schedule_path_pub;
+    
     struct Goal
     {
         Eigen::Vector2d location; 
