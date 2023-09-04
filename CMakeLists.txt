@@ -51,7 +51,7 @@ include_directories(
     ${rmf_utils_LIBRARIES}
     ${Eigen3_LIBRARIES}
   )
- #add_dependencies(agx_scheduler_node )
+ add_dependencies(agx_scheduler_node agx_scheduler_generate_messages_cpp)
  
   target_include_directories(agx_scheduler_node
     PRIVATE

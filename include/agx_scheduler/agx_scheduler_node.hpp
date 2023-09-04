@@ -43,16 +43,19 @@ class agx_scheduler_node
     //read and set the value of struct _goal and _start
     bool set_goal_and_start(void);
     
+    //start astar heuristic search using struct _goal and _start
+    bool astar_search_start();
     std::size_t get_goal_index();
     std::size_t get_start_index();
 
     class GreedyImplementation;
+    class AStarImplementation;
 
   private:
 
     //ros
     ros::Publisher schedule_path_pub;
-    
+
     struct Goal
     {
         Eigen::Vector2d location; 
@@ -71,7 +74,7 @@ class agx_scheduler_node
 
     std::shared_ptr<rmf_traffic::agv::VehicleTraits> _traits;
     std::shared_ptr<GreedyImplementation> _greedy_impl_ptr;
-
+    std::shared_ptr<AStarImplementation> _astar_impl_ptr;
     
 };
 }//namespace AgileX

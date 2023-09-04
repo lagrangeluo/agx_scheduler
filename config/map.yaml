@@ -1,0 +1,7 @@
+image: map.png
+resolution: 0.050000
+origin: [-51.525837, -8.545707, 0.000000] #navigation orin
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
