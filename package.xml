@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>agx_scheduler</name>
+  <version>1.0.0</version>
+  <description>The agx_scheduler package</description>
+  <maintainer email="junyu.luo@agilex.ai">Junyu Luo</maintainer>
+  <license>Apache 2.0</license>
+  <author email="aaron@openrobotics.org">Aaron Chong</author>
+
+ 
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rmf_traffic</build_depend>
+  <build_depend>rmf_utils</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>yaml-cpp</build_depend>
+  <build_depend>eigen</build_depend>
+  
+  <build_export_depend>rmf_traffic</build_export_depend>
+  <build_export_depend>rmf_utils</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>yaml-cpp</build_export_depend>
+  
+  <exec_depend>rmf_traffic</exec_depend>
+  <exec_depend>rmf_utils</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>yaml-cpp</exec_depend>
+
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

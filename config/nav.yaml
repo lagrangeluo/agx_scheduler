@@ -1,0 +1,266 @@
+building_name: office_2
+levels:
+  L1:
+    lanes:
+    - - 0
+      - 1
+      - {speed_limit: 0}
+    - - 1
+      - 0
+      - {speed_limit: 0}
+    - - 1
+      - 2
+      - {speed_limit: 0}
+    - - 2
+      - 1
+      - {speed_limit: 0}
+    - - 0
+      - 3
+      - {speed_limit: 0}
+    - - 3
+      - 0
+      - {speed_limit: 0}
+    - - 4
+      - 5
+      - {speed_limit: 0}
+    - - 5
+      - 4
+      - {speed_limit: 0}
+    - - 4
+      - 6
+      - {speed_limit: 0}
+    - - 6
+      - 4
+      - {speed_limit: 0}
+    - - 6
+      - 7
+      - {speed_limit: 0}
+    - - 7
+      - 6
+      - {speed_limit: 0}
+    - - 7
+      - 4
+      - {speed_limit: 0}
+    - - 4
+      - 7
+      - {speed_limit: 0}
+    - - 1
+      - 8
+      - {speed_limit: 0}
+    - - 8
+      - 1
+      - {speed_limit: 0}
+    - - 6
+      - 9
+      - {speed_limit: 0}
+    - - 9
+      - 6
+      - {speed_limit: 0}
+    - - 9
+      - 10
+      - {speed_limit: 0}
+    - - 10
+      - 9
+      - {speed_limit: 0}
+    - - 10
+      - 11
+      - {speed_limit: 0}
+    - - 11
+      - 10
+      - {speed_limit: 0}
+    - - 11
+      - 12
+      - {speed_limit: 0}
+    - - 12
+      - 11
+      - {speed_limit: 0}
+    - - 11
+      - 13
+      - {speed_limit: 0}
+    - - 13
+      - 11
+      - {speed_limit: 0}
+    - - 8
+      - 14
+      - {speed_limit: 0}
+    - - 14
+      - 8
+      - {speed_limit: 0}
+    - - 8
+      - 15
+      - {speed_limit: 0}
+    - - 15
+      - 8
+      - {speed_limit: 0}
+    - - 10
+      - 16
+      - {speed_limit: 0}
+    - - 16
+      - 10
+      - {speed_limit: 0}
+    - - 16
+      - 17
+      - {speed_limit: 0}
+    - - 17
+      - 16
+      - {speed_limit: 0}
+    - - 10
+      - 18
+      - {speed_limit: 0}
+    - - 18
+      - 10
+      - {speed_limit: 0}
+    - - 19
+      - 20
+      - {speed_limit: 0}
+    - - 20
+      - 19
+      - {speed_limit: 0}
+    - - 20
+      - 0
+      - {speed_limit: 0}
+    - - 0
+      - 20
+      - {speed_limit: 0}
+    - - 20
+      - 4
+      - {speed_limit: 0}
+    - - 4
+      - 20
+      - {speed_limit: 0}
+    vertices:
+    - - 49.531374439019125
+      - -17.975058451406714
+      - {is_holding_point: true, name: A}
+    - - 49.53087424538565
+      - -21.941643984253826
+      - {is_holding_point: true, name: B}
+    - - 50.88334781094791
+      - -21.92848889169334
+      - {is_holding_point: true, name: b}
+    - - 50.528810563538414
+      - -17.97610885803702
+      - {is_holding_point: true, name: a}
+    - - 49.53087424538565
+      - -14.115664414214026
+      - {is_holding_point: true, name: right, pickup_dispenser: ture}
+    - - 51.82891385567548
+      - -14.123367396169591
+      - {is_charger: true, is_holding_point: true, is_parking_spot: true, name: parking_1}
+    - - 47.182215039387785
+      - -14.123367396169591
+      - {dropoff_ingestor: ture, is_holding_point: true, name: left}
+    - - 48.34516523722508
+      - -12.017652237952195
+      - {is_holding_point: true, name: top}
+    - - 49.56983932943361
+      - -25.811792184566297
+      - {is_holding_point: true, name: C}
+    - - 47.18281527174796
+      - -15.285117129286538
+      - {is_holding_point: true, name: down}
+    - - 38.38585982039987
+      - -15.360296232398342
+      - {is_holding_point: true, name: lobby}
+    - - 35.66480645427735
+      - -15.439626942668019
+      - {is_holding_point: true, name: qiantai}
+    - - 35.649600567819604
+      - -14.315741867605388
+      - {is_holding_point: true, name: dandan}
+    - - 31.876740029218677
+      - -15.798966048958908
+      - {is_holding_point: true, name: waiting}
+    - - 50.8059678558488
+      - -25.80383910579399
+      - {is_holding_point: true, name: c}
+    - - 50.14386154321343
+      - -48.70540469205623
+      - {is_holding_point: true, name: far_away}
+    - - 38.358549248011954
+      - -21.56949992094589
+      - {is_holding_point: true, name: wait_lift_0}
+    - - 40.315606858359565
+      - -21.608364966267164
+      - {is_holding_point: false, is_passthrough_point: true, lift: lift_0, lift_cabin: lift_0,
+        name: lift_0}
+    - - 38.36485168779378
+      - -14.255518554134587
+      - {is_holding_point: false, is_passthrough_point: true, lift: lift_test, lift_cabin: lift_test,
+        name: lift_test}
+    - - 48.518782447405435
+      - -15.305925184439241
+      - {is_passthrough_point: true, lift: lift_test_1, lift_cabin: lift_test_1, name: lift_test_1}
+    - - 49.563486870288436
+      - -15.30057311256102
+      - {name: ''}
+  L2:
+    lanes:
+    - - 0
+      - 1
+      - {speed_limit: 0}
+    - - 1
+      - 0
+      - {speed_limit: 0}
+    - - 1
+      - 2
+      - {speed_limit: 0}
+    - - 2
+      - 1
+      - {speed_limit: 0}
+    - - 3
+      - 4
+      - {speed_limit: 0}
+    - - 4
+      - 3
+      - {speed_limit: 0}
+    - - 5
+      - 6
+      - {speed_limit: 0}
+    - - 6
+      - 5
+      - {speed_limit: 0}
+    - - 6
+      - 7
+      - {speed_limit: 0}
+    - - 7
+      - 6
+      - {speed_limit: 0}
+    - - 7
+      - 8
+      - {speed_limit: 0}
+    - - 8
+      - 7
+      - {speed_limit: 0}
+    vertices:
+    - - 40.35747395943586
+      - -21.621290251154708
+      - {is_holding_point: false, is_passthrough_point: true, lift: lift_0, lift_cabin: lift_0,
+        name: ''}
+    - - 38.52988548228296
+      - -21.64279677066015
+      - {is_holding_point: true, name: L2_out}
+    - - 38.53228505915759
+      - -18.839651495560588
+      - {is_holding_point: true, name: L2_test_1}
+    - - 38.367242672740716
+      - -14.290126774785168
+      - {is_passthrough_point: true, lift: lift_test, lift_cabin: lift_test, name: ''}
+    - - 38.36953960326275
+      - -15.496450590552671
+      - {is_holding_point: true, name: L2_test_2}
+    - - 48.51274770905676
+      - -15.280685810301982
+      - {lift: lift_test_1, lift_cabin: lift_test_1, name: ''}
+    - - 49.45147148802126
+      - -15.266392499059712
+      - {name: ''}
+    - - 49.447730238734415
+      - -14.043443719858756
+      - {name: ''}
+    - - 48.32132309456103
+      - -13.264066245940223
+      - {is_charger: true, is_holding_point: true, name: center_L2}
+  L3:
+    lanes: []
+    vertices: []
