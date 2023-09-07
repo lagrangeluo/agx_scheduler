@@ -1,0 +1,19 @@
+#the nav file name
+string file_name
+
+#specify the floor name,a nav map may contain multy floors
+string floor_name
+
+#the location of waypoint
+float32 location_x
+float32 location_y
+
+#the name of waypoint
+string waypoint_name
+---
+#the bool flag to judge if set success
+bool success
+
+#the index of the waypoint
+uint8 index
+

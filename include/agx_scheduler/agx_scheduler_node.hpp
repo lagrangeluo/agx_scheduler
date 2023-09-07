@@ -27,7 +27,7 @@
 //user defined header files
 #include <agx_scheduler/SchedulePath.h>
 #include <agx_scheduler/Waypoint.h>
-
+#include <agx_scheduler/add_waypoint.h>
 
 #define NULL_INDEX 65535
 
@@ -65,10 +65,14 @@ class agx_scheduler_node
     bool add_lanes_to_graph(std::size_t start_wp, std::size_t goal_wp,
                               std::string floor_name,std::string nav_file_name);
 
+    //service callback function
+    bool add_waypoint_callback(agx_scheduler::add_waypoint::Request& request, agx_scheduler::add_waypoint::Response& response);
   private:
 
     //ros
     ros::Publisher schedule_path_pub;
+    ros::ServiceServer add_waypoint_server;
+    ros::ServiceClient add_waypoint_client;
 
     struct Goal
     {

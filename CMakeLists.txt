@@ -25,6 +25,12 @@ add_message_files(
   Waypoint.msg
   SchedulePath.msg
 )
+
+add_service_files(
+  FILES
+  add_waypoint.srv
+)
+
 generate_messages(
   DEPENDENCIES
   std_msgs
@@ -51,7 +57,7 @@ include_directories(
     ${rmf_utils_LIBRARIES}
     ${Eigen3_LIBRARIES}
   )
- add_dependencies(agx_scheduler_node agx_scheduler_generate_messages_cpp)
+ add_dependencies(agx_scheduler_node ${${PROJECT_NAME}_EXPORTED_TARGETS})
  
   target_include_directories(agx_scheduler_node
     PRIVATE

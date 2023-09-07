@@ -226,6 +226,12 @@ agx_scheduler_node::agx_scheduler_node()
   private_nh.param<std::string>("config_path",_config_path,"/");
   
   schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("/schedule_path", 10, true);
+  // add_waypoint_server = nh.advertiseService("/agx_scheduler_node/add_waypoint_srv",
+  //                               std::bind(&agx_scheduler_node::add_waypoint_callback,this,std::placeholders::_1,std::placeholders::_2),this);
+  add_waypoint_server = nh.advertiseService("/agx_scheduler_node/add_waypoint_srv",
+                                &agx_scheduler_node::add_waypoint_callback,this);
+
+  add_waypoint_client = nh.serviceClient<agx_scheduler::add_waypoint>("/agx_scheduler_node/add_waypoint_srv");
 
   //init graph method
   _graph_impl_ptr = std::make_shared<GraphImplementation>(_graph_file_path,_config_path);
@@ -616,6 +622,23 @@ std::size_t agx_scheduler_node::get_goal_index()
 std::size_t agx_scheduler_node::get_start_index()
 {
   return _start.index;
+}
+
+bool agx_scheduler_node::add_waypoint_callback(agx_scheduler::add_waypoint::Request& request, 
+                                               agx_scheduler::add_waypoint::Response& response)
+{
+  ROS_INFO("\033[32mSERVICE CALL: add_waypoint\033[0m");
+
+  bool return_flag = add_waypoint_to_graph({request.location_x,request.location_y}, request.waypoint_name, request.floor_name,request.file_name);
+
+  if(return_flag)
+    response.success = true;
+  else
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: add waypoint failed!");
+  }
+  return true;
 }
 
 // }//namespace AgileX
