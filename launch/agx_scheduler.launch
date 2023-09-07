@@ -3,8 +3,10 @@
 <launch>
 
   <arg name="nav_file_path" default="$(find agx_scheduler)/config/nav.yaml"/>
+  <arg name="config_path" default="$(find agx_scheduler)/config/" />
   
   <node pkg="agx_scheduler"  type="agx_scheduler_node" name="agx_scheduler_node" output="screen">
     <param name = "nav_file_path" value="$(arg nav_file_path)" />
+    <param name = "config_path" value="$(arg config_path)" />
   </node>
 </launch>

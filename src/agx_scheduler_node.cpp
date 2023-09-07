@@ -5,47 +5,176 @@
 
 using namespace AgileX;
 
+class agx_scheduler_node::GraphImplementation
+{
+  public:
+  GraphImplementation(std::string nav_path,std::string config_path)
+    :_nav_file_path(nav_path),_config_path(config_path)
+  {
+    //
+  }
+
+  std::shared_ptr<rmf_traffic::agv::Graph> make_graph()
+  {
+    //init
+    auto traits = rmf_traffic::agv::VehicleTraits{
+      {0.7, 0.5},
+      {0.3, 1.5},
+      rmf_traffic::Profile{
+        rmf_traffic::geometry::make_final_convex<
+          rmf_traffic::geometry::Circle>(0.5),
+        rmf_traffic::geometry::make_final_convex<
+          rmf_traffic::geometry::Circle>(1.5)
+      }
+    };
+
+    traits.get_differential()->set_reversible(true);
+
+    std::shared_ptr<rmf_traffic::agv::Graph> ptr = 
+      std::make_shared<rmf_traffic::agv::Graph>(agx_scheduler::parse_graph(_nav_file_path, traits));
+    
+    //init graph
+    ROS_INFO("graph parse complete,waypoint num: %ld, lane num: %ld",ptr->num_waypoints(),ptr->num_lanes());
+    if(ptr->num_waypoints()<1)
+      ROS_ERROR("waypoint num is zero!");
+
+    return ptr;
+  }
+
+//  bool add_waypoint_to_graph(double& x,double& y, std::string& name)
+  bool add_waypoint_to_graph(Eigen::Vector2d location, std::string name, 
+                                std::string floor_name,std::string nav_file_name)
+  {
+    std::string file_path = _config_path + nav_file_name;
+    
+    //judge if the file exsis
+    std::fstream file;
+    file.open(file_path);
+    if(!file)
+    {
+      ROS_WARN("file not exist,create a new one!");
+      std::ofstream file_create(file_path,std::fstream::out);
+        if(file_create)
+          ROS_INFO("create new file success!");
+        else
+          ROS_ERROR("create new file failed!");
+      file.open(file_path);
+        if(file)
+          ROS_INFO("reopen success!");
+        else
+          ROS_ERROR("reopen faile!");
+    }
+    else
+      ROS_INFO("file open success!");
+
+    //init graph node
+    YAML::Node graph_config = YAML::LoadFile(file_path);
+    if (!graph_config)
+    {
+      throw std::runtime_error("Failed to load graph file [" + file_path + "]");
+    }
+
+    //wrap a waypoint node
+    std::string property;
+    if(!name.empty())
+      property = "{name: "+ name + "}";
+    else
+      property = "{}";
+
+    YAML::Node node_property = YAML::Load(property);
+    YAML::Node waypoint_node;
+
+    waypoint_node.push_back(location[0]);
+    waypoint_node.push_back(location[1]);
+    waypoint_node.push_back(node_property);
+
+    //add the waypoint into graph node
+    if(!graph_config.IsMap())
+    { 
+      //for empty graph node, we need to create all yaml node
+      ROS_WARN("THE graph node is empty");
+      graph_config["building_name"] = "agx_scheduler";
+
+      YAML::Node vertices_node,Level_node;
+      //vertex node
+      vertices_node["vertices"].push_back(waypoint_node);
+      //floor node
+      Level_node[floor_name] = vertices_node;
+      //level node
+      graph_config["levels"] = Level_node;
+    }
+    else
+    {
+      //we push back this node to the old one
+      ROS_INFO("THE graph node has previous nodes");
+      YAML::Node level_node = graph_config["levels"];
+      YAML::Node floor_node = level_node[floor_name];
+      if(floor_node.IsMap())
+        ROS_INFO("the floor is existed");
+      else
+        ROS_WARN("the floor is not exist,we create the node");
+
+      for(YAML::iterator it=floor_node["vertices"].begin();it!=floor_node["vertices"].end();++it)
+      { 
+        const YAML::Node& waypoint = *it;
+        if(waypoint[0].as<double>() == location[0] && waypoint[1].as<double>() == location[1])
+        {
+          ROS_ERROR("the current wp has same location with a wp in graph node! Abort this request!");
+          return false;
+        }
+      }
+      floor_node["vertices"].push_back(waypoint_node);
+    }
+
+    // save the file
+    std::ofstream file_writer(file_path, std::ios_base::out);
+    std::cout<< graph_config<<std::endl;
+    file<<graph_config<<std::endl;
+
+    //close the file
+    file_writer.close();
+    file.close();
+    return true;
+  }
+
+  std::string _nav_file_path;
+  std::string _config_path;
+
+};
+
 agx_scheduler_node::agx_scheduler_node()
 {
-    //init ros
-    ros::NodeHandle nh;
-    ros::NodeHandle private_nh("~");
+  //init ros
+  ros::NodeHandle nh;
+  ros::NodeHandle private_nh("~");
 
-    private_nh.param<std::string>("nav_file_path",_graph_file_path,"/"); 
-    schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("/schedule_path", 10, true);
-
-    //init graph file path
-    auto traits = rmf_traffic::agv::VehicleTraits{
-    {0.7, 0.5},
-    {0.3, 1.5},
-    rmf_traffic::Profile{
-      rmf_traffic::geometry::make_final_convex<
-        rmf_traffic::geometry::Circle>(0.5),
-      rmf_traffic::geometry::make_final_convex<
-        rmf_traffic::geometry::Circle>(1.5)
-    }
-  };
-
-  traits.get_differential()->set_reversible(true);
-
-  // _graph_file_path = "/home/agilex/schedule_ws/src/agx_scheduler/config/nav.yaml";
-
-  _graph  = std::make_shared<rmf_traffic::agv::Graph>(agx_scheduler::parse_graph(_graph_file_path, traits));
+  //init ros parameters
+  private_nh.param<std::string>("nav_file_path",_graph_file_path,"/");
+  private_nh.param<std::string>("config_path",_config_path,"/");
   
-  //init graph
-  ROS_INFO("graph parse complete,waypoint num: %ld, lane num: %ld",_graph->num_waypoints(),_graph->num_lanes());
-  if(_graph->num_waypoints()<1)
-    ROS_ERROR("waypoint num is zero!");
+  schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("/schedule_path", 10, true);
 
+  //init graph method
+  _graph_impl_ptr = std::make_shared<GraphImplementation>(_graph_file_path,_config_path);
+
+  //init graph file path
+  _graph  = _graph_impl_ptr->make_graph();
+
+  //init search method
+  init_search_method();
+}
+
+bool agx_scheduler_node::init_search_method()
+{
   //init greedy search method
   _greedy_impl_ptr = std::make_shared<GreedyImplementation>(_graph->num_waypoints());
 
   //init astart search method
   _astar_impl_ptr = std::make_shared<AStarImplementation>(_graph->num_waypoints());
 
-  // const Eigen::Vector2d info = _graph->get_waypoint(std::size_t(0)).get_location();
-  // std::cout<<"x:"<<info[0]<<"y: "<<info[1]<<std::endl;
+  return true;
 }
+
 
 class agx_scheduler_node::GreedyImplementation
 {
@@ -186,6 +315,7 @@ public:
   bool search_success = false;
 
 };
+
 
 bool agx_scheduler_node::greedy_search_start()
 {
@@ -365,6 +495,13 @@ bool agx_scheduler_node::astar_search_start()
 
 }
 
+bool agx_scheduler_node::add_waypoint_to_graph(Eigen::Vector2d location, std::string name, 
+                                std::string floor_name,std::string nav_file_name)
+{
+  return _graph_impl_ptr->add_waypoint_to_graph(location, name, 
+                                floor_name,nav_file_name);
+}
+
 bool agx_scheduler_node::set_goal_and_start(void)
 {
   std::size_t start_index,goal_index;
@@ -381,6 +518,12 @@ bool agx_scheduler_node::set_goal_and_start(void)
 
   ROS_INFO("goal set success,start index: %ld ,goal index: %ld ",get_start_index(),get_goal_index());
 
+  return true;
+}
+
+bool agx_scheduler_node::create_nav_yaml()
+{
+  //
   return true;
 }
 
@@ -405,11 +548,13 @@ int main(int argc, char * argv[])
 
   agx_scheduler_node agx_node;
 
-  agx_node.set_goal_and_start(); 
+  //agx_node.set_goal_and_start(); 
 
   //agx_node.greedy_search_start();
 
-  agx_node.astar_search_start();
+  //agx_node.astar_search_start();
+
+  agx_node.add_waypoint_to_graph({1.56,2.78}, "","L1","test.yaml");
   ros::spin();
   return 0;
 }

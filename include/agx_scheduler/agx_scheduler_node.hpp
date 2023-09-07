@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <stdint.h>
 #include <queue>
+#include <fstream>
 
 //ros include
 #include <ros/ros.h>
@@ -21,6 +22,7 @@
 #include <eigen3/Eigen/Dense>
 #include <rmf_traffic/geometry/Circle.hpp>
 #include "parse_graph.hpp"
+#include <yaml-cpp/yaml.h>
 
 //user defined header files
 #include <agx_scheduler/SchedulePath.h>
@@ -37,6 +39,9 @@ class agx_scheduler_node
     //default constructor
     agx_scheduler_node();
 
+    //init all search method
+    bool init_search_method();
+    
     //start greedy heuristic search using struct _goal and _start
     bool greedy_search_start();
 
@@ -48,8 +53,15 @@ class agx_scheduler_node
     std::size_t get_goal_index();
     std::size_t get_start_index();
 
+    //the api for creating nav yaml file
+    bool create_nav_yaml();
     class GreedyImplementation;
     class AStarImplementation;
+
+    //the yaml node parser
+    class GraphImplementation;
+    bool add_waypoint_to_graph(Eigen::Vector2d location, std::string name, 
+                                std::string floor_name,std::string nav_file_name);
 
   private:
 
@@ -71,10 +83,12 @@ class agx_scheduler_node
 
     std::shared_ptr<rmf_traffic::agv::Graph> _graph;
     std::string _graph_file_path;
+    std::string _config_path;
 
     std::shared_ptr<rmf_traffic::agv::VehicleTraits> _traits;
     std::shared_ptr<GreedyImplementation> _greedy_impl_ptr;
     std::shared_ptr<AStarImplementation> _astar_impl_ptr;
+    std::shared_ptr<GraphImplementation> _graph_impl_ptr;
     
 };
 }//namespace AgileX
