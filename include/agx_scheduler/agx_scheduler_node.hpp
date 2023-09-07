@@ -62,6 +62,8 @@ class agx_scheduler_node
     class GraphImplementation;
     bool add_waypoint_to_graph(Eigen::Vector2d location, std::string name, 
                                 std::string floor_name,std::string nav_file_name);
+    bool add_lanes_to_graph(std::size_t start_wp, std::size_t goal_wp,
+                              std::string floor_name,std::string nav_file_name);
 
   private:
 

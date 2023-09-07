@@ -52,26 +52,26 @@ class agx_scheduler_node::GraphImplementation
     file.open(file_path);
     if(!file)
     {
-      ROS_WARN("file not exist,create a new one!");
+      ROS_WARN("ADD Waypoint: file not exist,create a new one!");
       std::ofstream file_create(file_path,std::fstream::out);
         if(file_create)
-          ROS_INFO("create new file success!");
+          ROS_INFO("ADD Waypoint: create new file success!");
         else
-          ROS_ERROR("create new file failed!");
+          ROS_ERROR("ADD Waypoint: create new file failed!");
       file.open(file_path);
         if(file)
-          ROS_INFO("reopen success!");
+          ROS_INFO("ADD Waypoint: reopen success!");
         else
-          ROS_ERROR("reopen faile!");
+          ROS_ERROR("ADD Waypoint: reopen faile!");
     }
     else
-      ROS_INFO("file open success!");
+      ROS_INFO("ADD Waypoint: file open success!");
 
     //init graph node
     YAML::Node graph_config = YAML::LoadFile(file_path);
     if (!graph_config)
     {
-      throw std::runtime_error("Failed to load graph file [" + file_path + "]");
+      throw std::runtime_error("ADD Waypoint: Failed to load graph file [" + file_path + "]");
     }
 
     //wrap a waypoint node
@@ -92,7 +92,7 @@ class agx_scheduler_node::GraphImplementation
     if(!graph_config.IsMap())
     { 
       //for empty graph node, we need to create all yaml node
-      ROS_WARN("THE graph node is empty");
+      ROS_WARN("ADD Waypoint: the graph node is empty");
       graph_config["building_name"] = "agx_scheduler";
 
       YAML::Node vertices_node,Level_node;
@@ -106,20 +106,20 @@ class agx_scheduler_node::GraphImplementation
     else
     {
       //we push back this node to the old one
-      ROS_INFO("THE graph node has previous nodes");
+      ROS_INFO("ADD Waypoint: the graph node has previous nodes");
       YAML::Node level_node = graph_config["levels"];
       YAML::Node floor_node = level_node[floor_name];
       if(floor_node.IsMap())
-        ROS_INFO("the floor is existed");
+        ROS_INFO("ADD Waypoint: the floor is existed");
       else
-        ROS_WARN("the floor is not exist,we create the node");
+        ROS_WARN("ADD Waypoint: the floor is not exist,we create the node");
 
       for(YAML::iterator it=floor_node["vertices"].begin();it!=floor_node["vertices"].end();++it)
       { 
         const YAML::Node& waypoint = *it;
         if(waypoint[0].as<double>() == location[0] && waypoint[1].as<double>() == location[1])
         {
-          ROS_ERROR("the current wp has same location with a wp in graph node! Abort this request!");
+          ROS_ERROR("ADD Waypoint: the current wp has same location with a wp in graph node! Abort this request!");
           return false;
         }
       }
@@ -129,6 +129,79 @@ class agx_scheduler_node::GraphImplementation
     // save the file
     std::ofstream file_writer(file_path, std::ios_base::out);
     std::cout<< graph_config<<std::endl;
+    file<<graph_config<<std::endl;
+
+    //close the file
+    file_writer.close();
+    file.close();
+    return true;
+  }
+
+  bool add_lanes_to_graph(std::size_t start_wp, std::size_t goal_wp,
+                              std::string floor_name,std::string nav_file_name)
+  {
+    //
+    std::string file_path = _config_path + nav_file_name;
+    
+    //judge if the file exsis
+    std::fstream file;
+    file.open(file_path);
+    if(!file)
+    {
+      ROS_ERROR("ADD Lane: file not exist, for add lane operation it is forbidden");
+      return false;
+    }
+    else
+      ROS_INFO("ADD Lane: file open success!");
+
+    //init yaml node
+    YAML::Node graph_config = YAML::LoadFile(file_path);
+    if (!graph_config)
+    {
+      throw std::runtime_error("ADD Lane: Failed to load graph file [" + file_path + "]");
+    }
+
+    //wrap a lane node
+    YAML::Node lane_property = YAML::Load("{speed_limit: 0}");
+    YAML::Node lane_node;
+    lane_node.push_back(start_wp);
+    lane_node.push_back(goal_wp);
+    lane_node.push_back(lane_property);
+
+    //add the lane into graph node
+    uint8_t floor_exist_flag = false;
+    YAML::Node level_node = graph_config["levels"];
+    for(auto iter=level_node.begin(); iter!=level_node.end(); iter++)
+    {
+      if(iter->first.as<std::string>() == floor_name)
+      {
+        //change the flag
+        floor_exist_flag = true;
+        ROS_INFO("ADD Lane: find level: %s",floor_name.c_str());
+        YAML::Node lanes = iter->second["lanes"];
+        //check if it is a new lane
+        for(auto iter = lanes.begin(); iter != lanes.end(); iter++)
+        {
+          YAML::Node lane = *iter;
+          if(lane[0].as<std::size_t>() == start_wp && lane[1].as<std::size_t>() == goal_wp)
+          {
+            ROS_ERROR("ADD Lane: the current lane has same index with a lane in graph node! Abort the request!");
+            return false;
+          }
+        }
+        lanes.push_back(lane_node);
+      }
+    }
+    if(floor_exist_flag == false)
+    {
+      ROS_ERROR("ADD Lane: floor %s is not exist!Abort the request!",floor_name.c_str());
+      return false;
+    }
+
+    //clear the file will be written
+    std::ofstream file_writer(file_path, std::ios_base::out);
+    std::cout<< graph_config<<std::endl;
+    // save the file
     file<<graph_config<<std::endl;
 
     //close the file
@@ -499,7 +572,15 @@ bool agx_scheduler_node::add_waypoint_to_graph(Eigen::Vector2d location, std::st
                                 std::string floor_name,std::string nav_file_name)
 {
   return _graph_impl_ptr->add_waypoint_to_graph(location, name, 
-                                floor_name,nav_file_name);
+                                                floor_name,nav_file_name);
+}
+
+bool agx_scheduler_node::add_lanes_to_graph(std::size_t start_wp, std::size_t goal_wp,
+                        std::string floor_name,std::string nav_file_name)
+{
+  //
+  return _graph_impl_ptr->add_lanes_to_graph(start_wp, goal_wp,
+                                             floor_name, nav_file_name);
 }
 
 bool agx_scheduler_node::set_goal_and_start(void)
@@ -554,7 +635,9 @@ int main(int argc, char * argv[])
 
   //agx_node.astar_search_start();
 
-  agx_node.add_waypoint_to_graph({1.56,2.78}, "","L1","test.yaml");
+  // agx_node.add_waypoint_to_graph({1.56,2.78}, "","L1","test.yaml");
+  // agx_node.add_waypoint_to_graph({3.56,8.78}, "","L1","test.yaml");
+  // agx_node.add_lanes_to_graph(0,1,"L1","test.yaml");
   ros::spin();
   return 0;
 }
