@@ -5,8 +5,8 @@ string file_name
 string floor_name
 
 #the location of waypoint
-float32 location_x
-float32 location_y
+float64 location_x
+float64 location_y
 
 #the name of waypoint
 string waypoint_name
@@ -16,4 +16,3 @@ bool success
 
 #the index of the waypoint
 uint8 index
-

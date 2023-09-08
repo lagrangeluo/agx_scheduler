@@ -28,6 +28,7 @@
 #include <agx_scheduler/SchedulePath.h>
 #include <agx_scheduler/Waypoint.h>
 #include <agx_scheduler/add_waypoint.h>
+#include <agx_scheduler/add_lane.h>
 
 #define NULL_INDEX 65535
 
@@ -67,11 +68,13 @@ class agx_scheduler_node
 
     //service callback function
     bool add_waypoint_callback(agx_scheduler::add_waypoint::Request& request, agx_scheduler::add_waypoint::Response& response);
+    bool add_lane_callback(agx_scheduler::add_lane::Request& request, agx_scheduler::add_lane::Response& response);
   private:
 
     //ros
     ros::Publisher schedule_path_pub;
     ros::ServiceServer add_waypoint_server;
+    ros::ServiceServer add_lane_server;
     ros::ServiceClient add_waypoint_client;
 
     struct Goal

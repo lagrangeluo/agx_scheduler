@@ -178,6 +178,14 @@ class agx_scheduler_node::GraphImplementation
         //change the flag
         floor_exist_flag = true;
         ROS_INFO("ADD Lane: find level: %s",floor_name.c_str());
+        //check if the waypoints of lane exist
+        YAML::Node waypoint = iter->second["vertices"];
+        if(start_wp > waypoint.size()-1 || goal_wp > waypoint.size()-1)
+        {
+          ROS_ERROR("ADD Lane: the waypoint of lanes does not exist! Abort this request");
+          return false;
+        }
+        
         YAML::Node lanes = iter->second["lanes"];
         //check if it is a new lane
         for(auto iter = lanes.begin(); iter != lanes.end(); iter++)
@@ -226,10 +234,10 @@ agx_scheduler_node::agx_scheduler_node()
   private_nh.param<std::string>("config_path",_config_path,"/");
   
   schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("/schedule_path", 10, true);
-  // add_waypoint_server = nh.advertiseService("/agx_scheduler_node/add_waypoint_srv",
-  //                               std::bind(&agx_scheduler_node::add_waypoint_callback,this,std::placeholders::_1,std::placeholders::_2),this);
   add_waypoint_server = nh.advertiseService("/agx_scheduler_node/add_waypoint_srv",
                                 &agx_scheduler_node::add_waypoint_callback,this);
+  add_lane_server = nh.advertiseService("/agx_scheduler_node/add_lane_srv",
+                                &agx_scheduler_node::add_lane_callback,this);
 
   add_waypoint_client = nh.serviceClient<agx_scheduler::add_waypoint>("/agx_scheduler_node/add_waypoint_srv");
 
@@ -641,6 +649,22 @@ bool agx_scheduler_node::add_waypoint_callback(agx_scheduler::add_waypoint::Requ
   return true;
 }
 
+bool agx_scheduler_node::add_lane_callback(agx_scheduler::add_lane::Request& request, 
+                                           agx_scheduler::add_lane::Response& response)
+{
+  ROS_INFO("\033[32mSERVICE CALL: add_lane\033[0m");
+  bool return_flag = add_lanes_to_graph(request.start_index,request.end_index,request.floor_name,request.file_name);
+  
+  if(return_flag)
+    response.success = true;
+  else
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: add lane failed!");
+  }
+  return true;
+}
+
 // }//namespace AgileX
 
 
@@ -660,7 +684,7 @@ int main(int argc, char * argv[])
 
   // agx_node.add_waypoint_to_graph({1.56,2.78}, "","L1","test.yaml");
   // agx_node.add_waypoint_to_graph({3.56,8.78}, "","L1","test.yaml");
-  // agx_node.add_lanes_to_graph(0,1,"L1","test.yaml");
+  // agx_node.add_lanes_to_graph(7,8,"L1","test.yaml");
   ros::spin();
   return 0;
 }
