@@ -30,6 +30,7 @@ add_service_files(
   FILES
   add_waypoint.srv
   add_lane.srv
+  delete_lane.srv
 )
 
 generate_messages(
