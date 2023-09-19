@@ -309,6 +309,74 @@ class agx_scheduler_node::GraphImplementation
 
   }
 
+  bool delete_waypoint_of_graph(std::size_t wp_index, std::string floor_name, std::string nav_file_name)
+  {
+    std::string file_path = _config_path + nav_file_name + ".yaml";
+    //judge if the file exsis
+    std::fstream file;
+    file.open(file_path);
+    if(!file)
+    {
+      ROS_ERROR("DELETE Waypoint: file not exist, for delete lane operation it is forbidden");
+      return false;
+    }
+    else
+      ROS_INFO("DELETE Waypoint: file open success!");
+
+    //read yaml file
+    YAML::Node graph_config = YAML::LoadFile(file_path);
+    if (!graph_config)
+    {
+      throw std::runtime_error("DELETE Waypoint: Failed to load graph file [" + file_path + "]");
+    }
+    //judge if the floor is exist
+    bool floor_exist_flag = false;
+    YAML::Node level_node = graph_config["levels"];
+    for(auto iter=level_node.begin(); iter!=level_node.end(); iter++)
+    {
+      if(iter->first.as<std::string>() == floor_name)
+        floor_exist_flag=true;
+    }
+    if(floor_exist_flag == false)
+    {
+      ROS_ERROR("DELETE Lane: floor not exist,abort the request");
+      return false;
+    }
+
+    //init write node and copy waypoint
+    YAML::Node graph_write;
+    graph_write["building_name"] = graph_config["building_name"];
+    graph_write["levels"]["L1"]["vertices"] = graph_config["levels"]["L1"]["vertices"];
+    YAML::Node lanes_wirte = graph_write["levels"]["L1"]["lanes"];
+
+    //start search for the node
+    bool waypoint_to_lane_exist_flag = false;
+    YAML::Node lanes = level_node[floor_name]["lanes"];
+    for(auto iter = lanes.begin(); iter != lanes.end(); iter++)
+    {
+      YAML::Node lane = *iter;
+      if(lane[0].as<std::size_t>() == wp_index || lane[1].as<std::size_t>() == wp_index)
+      {
+        //if we find the target lane, we do not push back this lane
+        waypoint_to_lane_exist_flag = true;
+        ROS_INFO("DELETE Waypoint: find a lane belong to waypoint,delete it");
+        continue;
+      }
+      lanes_wirte.push_back(lane);
+    }
+    if(waypoint_to_lane_exist_flag == false)
+      ROS_WARN("DELETE Waypoint: the waypoint is already isolated");
+
+    //clear the file will be written
+    std::ofstream file_writer(file_path, std::ios_base::out);
+    file<<graph_write<<std::endl;
+    //close the file
+    file_writer.close();
+    file.close();
+
+    return true;
+  }
+
   std::string _nav_file_path;
   std::string _config_path;
   //to record the current nav file waypoint num and lane num,to give back a index
@@ -333,6 +401,8 @@ agx_scheduler_node::agx_scheduler_node()
                                 &agx_scheduler_node::add_lane_callback,this);
   delete_lane_server = nh.advertiseService("/agx_scheduler_node/delete_lane_srv",
                                 &agx_scheduler_node::delete_lane_callback,this);
+  delete_waypoint_server = nh.advertiseService("/agx_scheduler_node/delete_waypoint_srv",
+                                &agx_scheduler_node::delete_waypoint_callback,this);
   add_waypoint_client = nh.serviceClient<agx_scheduler::add_waypoint>("/agx_scheduler_node/add_waypoint_srv");
 
   //init graph method
@@ -697,6 +767,10 @@ bool agx_scheduler_node::delete_lane_of_graph(std::size_t start_wp, std::size_t 
   return _graph_impl_ptr->delete_lane_of_graph(start_wp,goal_wp,floor_name,nav_file_name);
 }
 
+bool agx_scheduler_node::delete_waypoint_of_graph(std::size_t wp_index, std::string floor_name, std::string nav_file_name)
+{
+  return _graph_impl_ptr->delete_waypoint_of_graph(wp_index,floor_name,nav_file_name);
+}
 
 bool agx_scheduler_node::set_goal_and_start(void)
 {
@@ -834,6 +908,34 @@ bool agx_scheduler_node::delete_lane_callback(agx_scheduler::delete_lane::Reques
 }
 // }//namespace AgileX
 
+bool agx_scheduler_node::delete_waypoint_callback(agx_scheduler::delete_waypoint::Request& request, 
+                                                  agx_scheduler::delete_waypoint::Response& response)
+{
+  ROS_INFO("\033[32mSERVICE CALL: delete_waypoint\033[0m");
+  //if the file name or floor name is empty,there is something wrong
+  if(request.floor_name.empty() || request.file_name.empty())
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: delete_waypoint empty element of request!");
+    return true;
+  }
+  ros::Time begin=ros::Time::now(); 
+  bool return_flag;
+  return_flag = delete_waypoint_of_graph(request.index,request.floor_name,request.file_name);
+  if(return_flag)
+  {
+    response.success = true;
+    //caculate running time
+    ros::Duration running_tim = ros::Time::now() - begin;
+    ROS_INFO("\033[32mSERVICE CALL: delete_waypoint,use time(ms): %f\033[0m",(float)(running_tim.nsec)/1000000.0);
+  }
+  else
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: delete waypoint failed!");
+  }
+  return true;
+}
 
 int main(int argc, char * argv[])
 {
