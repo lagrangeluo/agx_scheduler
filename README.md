@@ -8,7 +8,27 @@
 - [ ] 充电：两个服务，一个是直接搜索找到最近的充点电，可能得用djistra来搜索最近的，一个是复用goal目标直接前往充电点充电
 - [ ] lane和waypoint的多种服务
 - [ ] 添加lane操作的耗时有点高，最高可以干到将近20ms，想办法优化代码流程
+- [ ] 搞一个导航图检索模块，导航图每添加一段路径就执行检测程序，如果出现异常情况，比如离障碍物太近，反回false，ui上路径变为红色；若添加成功返回true，ui显示为绿色
+- [ ] 支持添加弯曲路网，增加计算弯曲路线长度的功能
+- [ ] 对非法request的异常判断，并反馈
 
 ## DESIGN Manual
 1. 关于add_waypoint服务和add_lane服务:
 waypoint的优先级更高，如果导航yaml文件为空，或者楼层缺失等等，调用add_waypoint可以完成创建文件，创建楼层等工作，但是add_lane服务没有这些功能，它的职责更加单一：只能在所有元素齐全的情况下才能创建一条单向lane，否则失败
+
+## service
+- add_waypoint
+    - name: /agx_scheduler_node/add_waypoint_srv
+    - type: agx_scheduler::add_waypoint
+    - request:
+    - response:
+- add_lane
+    - name: /agx_scheduler_node/add_lane_srv
+    - type: agx_scheduler::add_lane
+    - request:
+    - response:
+- delete_lane
+    - name: /agx_scheduler_node/delete_lane_srv
+    - type: agx_scheduler::delete_lane
+    - request:
+    - response:

@@ -240,7 +240,7 @@ class agx_scheduler_node::GraphImplementation
     else
       ROS_INFO("DELETE Lane: file open success!");
 
-    //init yaml node
+    //read yaml file
     YAML::Node graph_config = YAML::LoadFile(file_path);
     if (!graph_config)
     {
@@ -261,6 +261,12 @@ class agx_scheduler_node::GraphImplementation
       return false;
     }
 
+    //init write node and copy waypoint
+    YAML::Node graph_write;
+    graph_write["building_name"] = graph_config["building_name"];
+    graph_write["levels"]["L1"]["vertices"] = graph_config["levels"]["L1"]["vertices"];
+    YAML::Node lanes_wirte = graph_write["levels"]["L1"]["lanes"];
+
     //start search for the node
     bool lane_exist_flag = false;
     YAML::Node lanes = level_node[floor_name]["lanes"];
@@ -269,10 +275,12 @@ class agx_scheduler_node::GraphImplementation
       YAML::Node lane = *iter;
       if(lane[0].as<std::size_t>() == start_wp && lane[1].as<std::size_t>() == goal_wp)
       {
-        lanes.remove(lane);
+        //if we find the target lane, we do not push back this lane
         lane_exist_flag = true;
         ROS_INFO("DELETE Lane: find lane,delete success");
+        continue;
       }
+      lanes_wirte.push_back(lane);
     }
     if(lane_exist_flag == false)
     {
@@ -280,15 +288,23 @@ class agx_scheduler_node::GraphImplementation
       return false;
     }
 
-    //clear the file will be written
-    std::ofstream file_writer(file_path, std::ios_base::out);
-    //std::cout<< graph_config<<std::endl;
-    // save the file
-    file<<graph_config<<std::endl;
+    //if the num of lanes_write less 1 than previous one, we can insure that there is no wrong
+    if(lanes_wirte.size() == graph_config["levels"]["L1"]["lanes"].size() - 1)
+    {
+      //clear the file will be written
+      std::ofstream file_writer(file_path, std::ios_base::out);
+      file<<graph_write<<std::endl;
+      //close the file
+      file_writer.close();
+      file.close();
+    }
+    else
+    {
+      ROS_ERROR("DELETE Lane: wrong lanes nums,lanes_write: %ld,graph_write: %ld",
+                  lanes_wirte.size(),graph_config["levels"]["L1"]["lanes"].size());
+      return false;
+    }
 
-    //close the file
-    file_writer.close();
-    file.close();
     return true;
 
   }
@@ -721,6 +737,13 @@ bool agx_scheduler_node::add_waypoint_callback(agx_scheduler::add_waypoint::Requ
                                                agx_scheduler::add_waypoint::Response& response)
 {
   ROS_INFO("\033[32mSERVICE CALL: add_waypoint\033[0m");
+  //if the file name or floor name is empty,there is something wrong
+  if(request.floor_name.empty() || request.file_name.empty())
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: add_waypoint empty element of request!");
+    return true;
+  }
   ros::Time begin=ros::Time::now(); 
 
   bool return_flag = add_waypoint_to_graph({request.location_x,request.location_y}, request.waypoint_name, request.floor_name,request.file_name);
@@ -747,15 +770,22 @@ bool agx_scheduler_node::add_lane_callback(agx_scheduler::add_lane::Request& req
                                            agx_scheduler::add_lane::Response& response)
 {
   ROS_INFO("\033[32mSERVICE CALL: add_lane\033[0m");
+  //if the file name or floor name is empty,there is something wrong
+  if(request.floor_name.empty() || request.file_name.empty())
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: add_lane empty element of request!");
+    return true;
+  }
   ros::Time begin=ros::Time::now(); 
-
-  bool return_flag = add_lanes_to_graph(request.start_index,request.end_index,request.floor_name,request.file_name);
+  bool return_flag_1,return_flag_2;
+  return_flag_1 = add_lanes_to_graph(request.start_index,request.end_index,request.floor_name,request.file_name);
   if(request.double_side == true)
-    bool return_flag_2 = add_lanes_to_graph(request.end_index,request.start_index,request.floor_name,request.file_name);
+    return_flag_2 = add_lanes_to_graph(request.end_index,request.start_index,request.floor_name,request.file_name);
   
   //get lane index,the same with waypoint index
   const std::size_t lane_index = (_graph_impl_ptr->_lane_num) - 1;
-  if(return_flag)
+  if(return_flag_1 || return_flag_2)
   {
     response.success = true;
     response.index = lane_index;
@@ -775,9 +805,20 @@ bool agx_scheduler_node::delete_lane_callback(agx_scheduler::delete_lane::Reques
                                               agx_scheduler::delete_lane::Response& response)
 {
   ROS_INFO("\033[32mSERVICE CALL: delete_lane\033[0m");
+  //if the file name or floor name is empty,there is something wrong
+  if(request.floor_name.empty() || request.file_name.empty())
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: delete_lane empty element of request!");
+    return true;
+  }
   ros::Time begin=ros::Time::now(); 
-  bool return_flag = delete_lane_of_graph(request.start_index,request.end_index,request.floor_name,request.file_name);
-  if(return_flag)
+  bool return_flag_1,return_flag_2;
+  return_flag_1 = delete_lane_of_graph(request.start_index,request.end_index,request.floor_name,request.file_name);
+  if(request.double_side == true)
+    return_flag_2 = delete_lane_of_graph(request.end_index,request.start_index,request.floor_name,request.file_name);
+
+  if(return_flag_1 || return_flag_2)
   {
     response.success = true;
     //caculate running time
@@ -802,15 +843,16 @@ int main(int argc, char * argv[])
 
   agx_scheduler_node agx_node;
 
-  //agx_node.set_goal_and_start(); 
+  // agx_node.set_goal_and_start();
 
-  //agx_node.greedy_search_start();
+  // agx_node.greedy_search_start();
 
-  //agx_node.astar_search_start();
+  // agx_node.astar_search_start();
 
   // agx_node.add_waypoint_to_graph({1.56,2.78}, "","L1","test");
   // agx_node.add_waypoint_to_graph({3.56,8.78}, "","L1","test");
   // agx_node.add_lanes_to_graph(7,8,"L1","test.yaml");
+  // agx_node.delete_lane_of_graph(1,0,"L1","test");
   ros::spin();
   return 0;
 }
