@@ -1,1 +1,5 @@
 #if we want to reconstruct the nav graph node which is running using the new yaml file,we should call this service
+#the new file name that we want to load
+string new_file_name
+---
+bool success

@@ -403,6 +403,8 @@ agx_scheduler_node::agx_scheduler_node()
                                 &agx_scheduler_node::delete_lane_callback,this);
   delete_waypoint_server = nh.advertiseService("/agx_scheduler_node/delete_waypoint_srv",
                                 &agx_scheduler_node::delete_waypoint_callback,this);
+  comfirm_update_server = nh.advertiseService("/agx_scheduler_node/comfirm_update_srv",
+                                &agx_scheduler_node::comfirm_update_callback,this);
   add_waypoint_client = nh.serviceClient<agx_scheduler::add_waypoint>("/agx_scheduler_node/add_waypoint_srv");
 
   //init graph method
@@ -772,6 +774,21 @@ bool agx_scheduler_node::delete_waypoint_of_graph(std::size_t wp_index, std::str
   return _graph_impl_ptr->delete_waypoint_of_graph(wp_index,floor_name,nav_file_name);
 }
 
+bool agx_scheduler_node::update_nav_graph(std::string nav_file_name)
+{
+  //reconstruct graph method
+  std::string file_name = _config_path + nav_file_name + ".yaml";
+  _graph_impl_ptr = std::make_shared<GraphImplementation>(file_name,_config_path);
+
+  //reconstruct graph class
+  _graph  = _graph_impl_ptr->make_graph();
+
+  //reconstruct all search method
+  init_search_method();
+  
+  return true;
+}
+
 bool agx_scheduler_node::set_goal_and_start(void)
 {
   std::size_t start_index,goal_index;
@@ -933,6 +950,34 @@ bool agx_scheduler_node::delete_waypoint_callback(agx_scheduler::delete_waypoint
   {
     response.success = false;
     ROS_ERROR("SERVICE CALL: delete waypoint failed!");
+  }
+  return true;
+}
+
+bool agx_scheduler_node::comfirm_update_callback(agx_scheduler::comfirm_update::Request& request, 
+                                                 agx_scheduler::comfirm_update::Response& response)
+{
+  ROS_INFO("\033[32mSERVICE CALL: comfirm_update\033[0m");
+  //if the file name or floor name is empty,there is something wrong
+  if(request.new_file_name.empty())
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: comfirm_update empty element of request!");
+    return true;
+  }
+  ros::Time begin=ros::Time::now(); 
+  bool return_flag;
+  return_flag = update_nav_graph(request.new_file_name);
+  if(return_flag)
+  {
+    response.success = true;
+    ros::Duration running_tim = ros::Time::now() - begin;
+    ROS_INFO("\033[32mSERVICE CALL: delete_waypoint,use time(ms): %f\033[0m",(float)(running_tim.nsec)/1000000.0);
+  }
+  else
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: comfirm_update failed!");
   }
   return true;
 }

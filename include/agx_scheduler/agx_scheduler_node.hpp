@@ -31,6 +31,7 @@
 #include <agx_scheduler/add_lane.h>
 #include <agx_scheduler/delete_lane.h>
 #include <agx_scheduler/delete_waypoint.h>
+#include <agx_scheduler/comfirm_update.h>
 
 #define NULL_INDEX 65535
 
@@ -71,11 +72,13 @@ class agx_scheduler_node
                                std::string floor_name, std::string nav_file_name);
     bool delete_waypoint_of_graph(std::size_t wp_index, std::string floor_name, std::string nav_file_name);
 
+    bool update_nav_graph(std::string nav_file_name);
     //service callback function
     bool add_waypoint_callback(agx_scheduler::add_waypoint::Request& request, agx_scheduler::add_waypoint::Response& response);
     bool add_lane_callback(agx_scheduler::add_lane::Request& request, agx_scheduler::add_lane::Response& response);
     bool delete_lane_callback(agx_scheduler::delete_lane::Request& request, agx_scheduler::delete_lane::Response& response);
     bool delete_waypoint_callback(agx_scheduler::delete_waypoint::Request& request, agx_scheduler::delete_waypoint::Response& response);
+    bool comfirm_update_callback(agx_scheduler::comfirm_update::Request& request, agx_scheduler::comfirm_update::Response& response);
   private:
 
     //ros
@@ -84,6 +87,7 @@ class agx_scheduler_node
     ros::ServiceServer add_lane_server;
     ros::ServiceServer delete_lane_server;
     ros::ServiceServer delete_waypoint_server;
+    ros::ServiceServer comfirm_update_server;
     ros::ServiceClient add_waypoint_client;
 
     struct Goal
