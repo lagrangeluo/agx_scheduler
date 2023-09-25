@@ -16,6 +16,7 @@
 - [ ] 明确shared_ptr如果赋值另外一个，之前管理的内存会不会自动析构，确认是否需要手动析构一些指针
 - [ ] update nav graph的时候直接重新申请了方法指针，可以调用更新函数这样不用重新构建类
 - [ ] 增加栅格地图的坐标转化功能，方便以后接入rmf的坐标系
+- [ ] service添加错误反馈，如果调用发生错误，将错误string通过response传递
 
 ## DESIGN Manual
 1. 关于add_waypoint服务和add_lane服务:
