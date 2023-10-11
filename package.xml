@@ -17,11 +17,13 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>message_runtime</build_depend>
+  <build_depend>free_fleet</build_depend>
 
   <build_export_depend>rmf_traffic</build_export_depend>
   <build_export_depend>rmf_utils</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>yaml-cpp</build_export_depend>
+  <build_export_depend>free_fleet</build_export_depend>
   
   <exec_depend>rmf_traffic</exec_depend>
   <exec_depend>rmf_utils</exec_depend>
@@ -29,6 +31,7 @@
   <exec_depend>yaml-cpp</exec_depend>
   <exec_depend>message_generation</exec_depend>
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>free_fleet</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

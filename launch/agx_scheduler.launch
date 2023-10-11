@@ -5,9 +5,11 @@
   <arg name="nav_file_name" default="nav"/>
   <arg name="config_path" default="$(find agx_scheduler)/config/" />
   <arg name="nav_file_path" default="$(arg config_path)$(arg nav_file_name).yaml"/>
+  <arg name="if_start_test" default="false" /> 
 
   <node pkg="agx_scheduler"  type="agx_scheduler_node" name="agx_scheduler_node" output="screen">
     <param name = "nav_file_path" value="$(arg nav_file_path)" />
     <param name = "config_path" value="$(arg config_path)" />
+    <param name = "if_start_test" value="$(arg if_start_test)" />
   </node>
 </launch>

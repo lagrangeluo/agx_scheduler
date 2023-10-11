@@ -62,6 +62,9 @@ class agx_scheduler_node
     class GreedyImplementation;
     class AStarImplementation;
 
+    //check if we start test mode 
+    bool check_if_start_test();
+    
     //the yaml node parser
     class GraphImplementation;
     bool add_waypoint_to_graph(Eigen::Vector2d location, std::string name, 
@@ -111,6 +114,7 @@ class agx_scheduler_node
     std::shared_ptr<GreedyImplementation> _greedy_impl_ptr;
     std::shared_ptr<AStarImplementation> _astar_impl_ptr;
     std::shared_ptr<GraphImplementation> _graph_impl_ptr;
+    bool if_start_test = false;
     
 };
 }//namespace AgileX

@@ -1,0 +1,12 @@
+<?xml version='1.0' ?>
+
+<launch>
+
+  <arg name="dds_domain" default="42"/>
+  <arg name="dds_path_request_topic" default="path_request" />
+
+  <node pkg="agx_scheduler"  type="agx_server_node" name="agx_server_node" output="screen">
+    <param name = "dds_domain" value="$(arg dds_domain)" />
+    <param name = "dds_path_request_topic" value="$(arg dds_path_request_topic)" />
+  </node>
+</launch>

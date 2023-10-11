@@ -393,8 +393,9 @@ agx_scheduler_node::agx_scheduler_node()
   //init ros parameters
   private_nh.param<std::string>("nav_file_path",_graph_file_path,"/");
   private_nh.param<std::string>("config_path",_config_path,"/");
-  
-  schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("/schedule_path", 10, true);
+  private_nh.param<bool>("if_start_test",if_start_test,"false");
+
+  schedule_path_pub = nh.advertise<agx_scheduler::SchedulePath>("agx_scheduler_node/schedule_path", 10, true);
   add_waypoint_server = nh.advertiseService("/agx_scheduler_node/add_waypoint_srv",
                                 &agx_scheduler_node::add_waypoint_callback,this);
   add_lane_server = nh.advertiseService("/agx_scheduler_node/add_lane_srv",
@@ -824,6 +825,12 @@ std::size_t agx_scheduler_node::get_start_index()
   return _start.index;
 }
 
+bool agx_scheduler_node::check_if_start_test()
+{
+  //
+  return if_start_test;
+}
+
 bool agx_scheduler_node::add_waypoint_callback(agx_scheduler::add_waypoint::Request& request, 
                                                agx_scheduler::add_waypoint::Response& response)
 {
@@ -985,16 +992,19 @@ bool agx_scheduler_node::comfirm_update_callback(agx_scheduler::comfirm_update::
 int main(int argc, char * argv[])
 {
   ROS_INFO("----------------------------");
-  ros::init(argc, argv, "limo_node");
+  ros::init(argc, argv, "agx_server_node");
   ros::NodeHandle nh;
 
   agx_scheduler_node agx_node;
 
-  // agx_node.set_goal_and_start();
+  if(agx_node.check_if_start_test())
+  {
+    agx_node.set_goal_and_start();
 
-  // agx_node.greedy_search_start();
+    agx_node.greedy_search_start();
 
-  // agx_node.astar_search_start();
+    agx_node.astar_search_start();
+  }
 
   // agx_node.add_waypoint_to_graph({1.56,2.78}, "","L1","test");
   // agx_node.add_waypoint_to_graph({3.56,8.78}, "","L1","test");
