@@ -1,0 +1,18 @@
+uint8 GREEDY_SEARCH = 0
+uint8 ASTAR_SEARCH = 1
+
+#the nav file name
+string file_name
+
+#select the search method
+uint8 search_method
+
+#the start waypoint of lane
+uint16 start_index
+
+#the end waypoint of lane
+uint16 goal_index
+
+---
+#the bool flag to judge if set success
+bool success

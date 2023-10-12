@@ -406,6 +406,8 @@ agx_scheduler_node::agx_scheduler_node()
                                 &agx_scheduler_node::delete_waypoint_callback,this);
   comfirm_update_server = nh.advertiseService("/agx_scheduler_node/comfirm_update_srv",
                                 &agx_scheduler_node::comfirm_update_callback,this);
+  start_schedule_server = nh.advertiseService("/agx_scheduler_node/start_schedule_srv",
+                                &agx_scheduler_node::start_schedule_callback,this);
   add_waypoint_client = nh.serviceClient<agx_scheduler::add_waypoint>("/agx_scheduler_node/add_waypoint_srv");
 
   //init graph method
@@ -448,6 +450,27 @@ class agx_scheduler_node::GreedyImplementation
       
     }
 
+    bool GreedyReinit()
+    {
+      //reinit the list
+      _closed_list.clear();
+      _parent_list.clear();
+
+      while(_closed_list.size() < _waypoint_num)
+        _closed_list.push_back(NULL_INDEX);
+      while(_parent_list.size() < _waypoint_num)
+        _parent_list.push_back(NULL_INDEX);
+
+      //reinit the queue
+      while(!_search_queue.empty())
+      {
+        _search_queue.pop();
+      }
+      //reset the search complete flag
+      set_search_complete(false);
+
+      return true;
+    }
     //search node for greedysearch method
     struct Node
     {
@@ -466,9 +489,12 @@ class agx_scheduler_node::GreedyImplementation
       return search_success;
     }
 
-    void set_search_complete()
+    void set_search_complete(bool if_success)
     {
-      search_success=true;
+      if(if_success)
+        search_success=true;
+      else
+        search_success=false;
     }
     template<typename waypoint>
     struct GreedyCompare
@@ -511,6 +537,29 @@ public:
       _parent_list.push_back(NULL_INDEX);
   }
 
+  bool AStarReinit()
+  {
+    //reinit the list
+    _closed_list.clear();
+    _parent_list.clear();
+
+    while(_closed_list.size() < _waypoint_num)
+      _closed_list.push_back(NULL_INDEX);
+    while(_parent_list.size() < _waypoint_num)
+      _parent_list.push_back(NULL_INDEX);
+
+    //reinit the queue
+    while(!_search_queue.empty())
+    {
+      _search_queue.pop();
+    }
+    
+    //reset the search complete flag
+    set_search_complete(false);
+
+    return true;
+  }
+
   struct Node
   {
     std::size_t index;
@@ -540,9 +589,12 @@ public:
     return search_success;
   }
 
-  void set_search_complete()
+  void set_search_complete(bool if_success)
   {
-    search_success=true;
+    if(if_success)
+      search_success=true;
+    else
+      search_success=false;
   }
 
   template<typename waypoint>
@@ -615,7 +667,7 @@ bool agx_scheduler_node::greedy_search_start()
       if(index == _goal.index)
       {
         //set complete to break the while
-        _greedy_impl_ptr->set_search_complete();
+        _greedy_impl_ptr->set_search_complete(true);
         break;
       }
     }
@@ -628,12 +680,16 @@ bool agx_scheduler_node::greedy_search_start()
   agx_scheduler::SchedulePath path_msg;
   agx_scheduler::Waypoint wp_msg;
   wp_msg.index = _goal.index;
+  wp_msg.location_x = _graph->get_waypoint(_goal.index).get_location()[0];
+  wp_msg.location_y = _graph->get_waypoint(_goal.index).get_location()[1];
   path_msg.path.push_back(wp_msg);
 
   ROS_INFO("----goal %ld",_goal.index);
   while(path_index != _start.index)
   {
     wp_msg.index = path_index;
+    wp_msg.location_x = _graph->get_waypoint(path_index).get_location()[0];
+    wp_msg.location_y = _graph->get_waypoint(path_index).get_location()[1];
     path_msg.path.push_back(wp_msg);
 
     ROS_INFO(("-------- %ld"),path_index);
@@ -706,12 +762,11 @@ bool agx_scheduler_node::astar_search_start()
 
       _astar_impl_ptr->_search_queue.push(node_input);
       _astar_impl_ptr->_parent_list[index] = top_index;
-
       ROS_DEBUG("PUSH node index:%ld",index);
       if(index == _goal.index)
       {
         //set complete to break the while
-        _astar_impl_ptr->set_search_complete();
+        _astar_impl_ptr->set_search_complete(true);
         break;
       }
     }
@@ -724,12 +779,17 @@ bool agx_scheduler_node::astar_search_start()
   agx_scheduler::SchedulePath path_msg;
   agx_scheduler::Waypoint wp_msg;
   wp_msg.index = _goal.index;
+  wp_msg.location_x = _graph->get_waypoint(_goal.index).get_location()[0];
+  wp_msg.location_y = _graph->get_waypoint(_goal.index).get_location()[1];
+
   path_msg.path.push_back(wp_msg);
 
   ROS_INFO("----goal %ld",_goal.index);
   while(path_index != _start.index)
   {
     wp_msg.index = path_index;
+    wp_msg.location_x = _graph->get_waypoint(path_index).get_location()[0];
+    wp_msg.location_y = _graph->get_waypoint(path_index).get_location()[1];
     path_msg.path.push_back(wp_msg);
 
     ROS_INFO(("-------- %ld"),path_index);
@@ -986,6 +1046,56 @@ bool agx_scheduler_node::comfirm_update_callback(agx_scheduler::comfirm_update::
     response.success = false;
     ROS_ERROR("SERVICE CALL: comfirm_update failed!");
   }
+  return true;
+}
+
+bool agx_scheduler_node::start_schedule_callback(agx_scheduler::start_schedule::Request& request, 
+                                                 agx_scheduler::start_schedule::Response& response)
+{
+  ROS_INFO("\033[32mSERVICE CALL: start_schedule\033[0m");
+  //if the file name is empty,there is something wrong
+  if(request.file_name.empty())
+  {
+    response.success = false;
+    ROS_ERROR("SERVICE CALL: start_schedule empty element of request!");
+    return true;
+  }
+
+  //update the start and goal information
+  _start.index = request.start_index;
+  _start.location = _graph->get_waypoint(_start.index).get_location();
+
+  _goal.index = request.goal_index;
+  _goal.location = _graph->get_waypoint(_goal.index).get_location();
+
+  ROS_INFO("SERVICE CALL: start_schedule,goal set success,start index: %ld ,goal index: %ld ",get_start_index(),get_goal_index());
+  
+  //choose a search method and execute it
+  bool search_status = false;
+  switch (request.search_method)
+  {
+  case agx_scheduler::start_schedule::Request::GREEDY_SEARCH:
+    _greedy_impl_ptr->GreedyReinit();
+    search_status = greedy_search_start();
+    break;
+
+  case agx_scheduler::start_schedule::Request::ASTAR_SEARCH:
+    _astar_impl_ptr->AStarReinit();
+    search_status = astar_search_start();
+    break;
+
+  default:
+    ROS_ERROR("SERVICE CALL: start_schedule, unknown search_method called");
+    response.success = false;
+    break;
+  }
+
+  if(!search_status)
+  {
+    ROS_ERROR("SERVICE CALL: start_schedule,search failed!");
+    response.success = false;
+  }
+  response.success = true;
   return true;
 }
 

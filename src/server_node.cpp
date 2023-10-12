@@ -58,13 +58,12 @@ void agx_server_node::schedule_path_callback(const agx_scheduler::SchedulePath::
 
     ++first;
   }
-  std::cout<<"test"<<std::endl;
   _server->send_path_request(ff_msg);
 }
 
 int main(int argc, char * argv[])
 {
-  ROS_INFO("----------------------------");
+  ROS_INFO("--------------agx_server_node--------------");
   ros::init(argc, argv, "/agx_server_node");
 
   ros::NodeHandle nh;
