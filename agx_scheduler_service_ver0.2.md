@@ -127,6 +127,33 @@ waypoint的优先级更高，如果导航yaml文件为空，或者楼层缺失�
       ---
       bool success
       ```
+
+- start_schedule（发起路网规划请求）
+  - name: /agx_scheduler_node/start_schedule
+
+  - type: agx_scheduler_node::start_schedule
+
+  - request&response
+
+    ```
+    uint8 GREEDY_SEARCH = 0
+    uint8 ASTAR_SEARCH = 1
     
-      
+    #the nav file name
+    string file_name
+    
+    #select the search method
+    uint8 search_method
+    
+    #the start waypoint index
+    uint16 start_index
+    
+    #the end waypoint index
+    uint16 goal_index
+    
+    ---
+    #the bool flag to judge if set success
+    bool success
+    ```
+    
 

@@ -6,10 +6,18 @@
   <arg name="config_path" default="$(find agx_scheduler)/config/" />
   <arg name="nav_file_path" default="$(arg config_path)$(arg nav_file_name).yaml"/>
   <arg name="if_start_test" default="false" /> 
+  <arg name="dds_domain" default="42"/>
+  <arg name="dds_path_request_topic" default="path_request" />
 
   <node pkg="agx_scheduler"  type="agx_scheduler_node" name="agx_scheduler_node" output="screen">
     <param name = "nav_file_path" value="$(arg nav_file_path)" />
     <param name = "config_path" value="$(arg config_path)" />
     <param name = "if_start_test" value="$(arg if_start_test)" />
   </node>
+
+  <node pkg="agx_scheduler"  type="agx_server_node" name="agx_server_node" output="screen">
+    <param name = "dds_domain" value="$(arg dds_domain)" />
+    <param name = "dds_path_request_topic" value="$(arg dds_path_request_topic)" />
+  </node>
+
 </launch>

@@ -44,35 +44,6 @@ $ roslaunch agx_scheduler agx_scheduler.launch
 ```
 if use docker,run shell script:
 ```shell
+$ cd ~/schedule_ws/src/agx_scheuler
 $ sudo bash docker_start.bash
 ```
-## DESIGN Manual
-1. 关于add_waypoint服务和add_lane服务:
-waypoint的优先级更高，如果导航yaml文件为空，或者楼层缺失等等，调用add_waypoint可以完成创建文件，创建楼层等工作，但是add_lane服务没有这些功能，它的职责更加单一：只能在所有元素齐全的情况下才能创建一条单向lane，否则失败
-
-## service
-- add_waypoint（添加路径点）
-    - name: /agx_scheduler_node/add_waypoint_srv
-    - type: agx_scheduler::add_waypoint
-    - request:
-    - response:
-- add_lane（添加路径）
-    - name: /agx_scheduler_node/add_lane_srv
-    - type: agx_scheduler::add_lane
-    - request:
-    - response:
-- delete_lane（删除路径）
-    - name: /agx_scheduler_node/delete_lane_srv
-    - type: agx_scheduler::delete_lane
-    - request:
-    - response:
-- delete_waypoint（删除路径点）
-    - name: /agx_scheduler_node/delete_waypoint
-    - type: agx_scheduler::delete_waypoint
-    - request:
-    - response:
-- comfirm_update（确认导航图已经更新，重新调用构造函数）
-    - name: /agx_scheduler_node/comfirm_update
-    - type: agx_scheduler_node::comfirm_update
-    - request:
-    - response:
