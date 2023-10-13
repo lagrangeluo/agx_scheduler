@@ -696,6 +696,8 @@ bool agx_scheduler_node::greedy_search_start()
     path_index = _greedy_impl_ptr->_parent_list[path_index];
   }
   wp_msg.index = _start.index;
+  wp_msg.location_x = _graph->get_waypoint(_start.index).get_location()[0];
+  wp_msg.location_y = _graph->get_waypoint(_start.index).get_location()[1];
   path_msg.path.push_back(wp_msg);
 
   //pub the path msg
@@ -796,6 +798,8 @@ bool agx_scheduler_node::astar_search_start()
     path_index = _astar_impl_ptr->_parent_list[path_index];
   }
   wp_msg.index = _start.index;
+  wp_msg.location_x = _graph->get_waypoint(_start.index).get_location()[0];
+  wp_msg.location_y = _graph->get_waypoint(_start.index).get_location()[1];
   path_msg.path.push_back(wp_msg);
 
   //pub the path msg

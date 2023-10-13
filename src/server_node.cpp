@@ -36,12 +36,12 @@ void agx_server_node::schedule_path_callback(const agx_scheduler::SchedulePath::
   //start wrap the path
   messages::PathRequest ff_msg;
   ff_msg.fleet_name = "agx_fleet";
-  ff_msg.robot_name = "agx_fleet";
+  ff_msg.robot_name = "scout_1";
   ff_msg.task_id = "agx-server-node-" + std::to_string(task_id);
   task_id++;
 
-  auto first = traj->path.begin();
-  auto end = traj->path.end();
+  auto first = traj->path.rbegin();
+  auto end = traj->path.rend();
   while (first != end)
   {
     ros::Time time = ros::Time::now();
