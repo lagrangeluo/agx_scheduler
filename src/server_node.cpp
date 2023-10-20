@@ -50,8 +50,11 @@ void agx_server_node::schedule_path_callback(const agx_scheduler::SchedulePath::
     location.nanosec = time.nsec;
     location.x = (*first).location_x;
     location.y = (*first).location_y;
-    //TODO: add yaw support
-    location.yaw = 0;
+    if((first+1) == end)
+      location.yaw = caculate_yaw(*(first-1),*first);
+    else
+      location.yaw = caculate_yaw(*first,*(first+1));
+
     location.level_name = "L1";
 
     ff_msg.path.push_back(location);
@@ -59,6 +62,13 @@ void agx_server_node::schedule_path_callback(const agx_scheduler::SchedulePath::
     ++first;
   }
   _server->send_path_request(ff_msg);
+}
+
+float agx_server_node::caculate_yaw(const agx_scheduler::Waypoint& in, const agx_scheduler::Waypoint& out)
+{
+  float delta_x = out.location_x - in.location_x;
+  float delta_y = out.location_y - in.location_y;
+  return atan(delta_y/delta_x);
 }
 
 int main(int argc, char * argv[])

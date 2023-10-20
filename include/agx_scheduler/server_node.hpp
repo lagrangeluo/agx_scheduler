@@ -4,12 +4,10 @@
 //std include
 #include <string>
 #include <vector>
-// #include <chrono>
+#include <cmath>
 #include <unistd.h> 
 // #include <cstdio>
 // #include <stdint.h>
-// #include <queue>
-// #include <fstream>
 
 //ros include
 #include <ros/ros.h>
@@ -39,7 +37,7 @@ class agx_server_node
     //ros and callbacks
     ros::Subscriber schedule_path_sub;
     void schedule_path_callback(const agx_scheduler::SchedulePath::ConstPtr& traj);
-
+    float caculate_yaw(const agx_scheduler::Waypoint& in, const agx_scheduler::Waypoint& out);
     //free_fleet server
     Server::SharedPtr _server;
     ServerConfig _server_config;
